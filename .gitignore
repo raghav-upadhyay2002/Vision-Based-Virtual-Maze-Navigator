@@ -1,3 +1,8 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
+
+# Webots-bundled plugin boilerplate (vendor content, not project code)
+e-puck/plugins/
+*.dll
