@@ -27,10 +27,16 @@ left_motor.setVelocity(0.0)
 
 
 
+
+
 right_motor= robot.getDevice("right wheel motor")
 right_motor.setPosition(float('inf'))
 right_motor.setVelocity(0.0)
 
+
+
+keyboard= robot.get.keyboard()
+keyboard.enable(timestep)
 
 print('Camera resolution:', camera.getWidth() ,'x' , camera.getHeight())
 
@@ -55,9 +61,28 @@ while robot.step(timestep)!=-1:
     cv2.waitKey(1)
 
 
-    # Drive both wheels forward at a constant speed (rad/s).
-    left_motor.setVelocity(2.0)
-    right_motor.setVelocity(2.0)
+    key= keyboard.getkey()
+    speed= 4.0
+
+    if key== ord('W'):
+        left_motor.setVelocity(speed)
+        right_motor.setVelocity(speed)
+
+    elif key== ord('S'):
+        left_motor.setVelocity(-speed)
+        right_motor.setVelocity(-speed)
+
+    elif key== ord('A'):
+        left_motor.setVelocity(-speed)
+        right_motor.setVelocity(speed)
+
+    elif key== ord('D'):
+        left_motor.setVelocity(speed)
+        right_motor.setVelocity(-speed)
+
+    else:
+        left_motor.setVelocity(0.0)
+        right_motor.setVelocity(0.0)
 
 # Close the preview window once the control loop ends.
 cv2.destroyAllWindows()
