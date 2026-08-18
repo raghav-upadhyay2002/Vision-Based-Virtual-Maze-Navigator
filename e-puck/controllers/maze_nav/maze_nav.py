@@ -35,7 +35,7 @@ right_motor.setVelocity(0.0)
 
 
 
-keyboard= robot.get.keyboard()
+keyboard= robot.getKeyboard()
 keyboard.enable(timestep)
 
 print('Camera resolution:', camera.getWidth() ,'x' , camera.getHeight())
@@ -61,7 +61,7 @@ while robot.step(timestep)!=-1:
     cv2.waitKey(1)
 
 
-    key= keyboard.getkey()
+    key= keyboard.getKey()
     speed= 4.0
 
     if key== ord('W'):
