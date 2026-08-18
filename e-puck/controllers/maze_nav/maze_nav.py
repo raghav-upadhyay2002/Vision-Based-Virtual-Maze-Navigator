@@ -15,7 +15,7 @@ timestep= int(robot.getBasicTimeStep())
 
 
 # enable() starts the camera streaming images; without it getImage() returns None.
-camera=  robot.getDevice('Camera')
+camera=  robot.getDevice('camera')
 camera.enable(timestep)
 
 
