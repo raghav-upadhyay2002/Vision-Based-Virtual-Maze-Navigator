@@ -2,6 +2,31 @@ from controller import Robot
 import numpy as np
 import cv2
 
+
+def detect_target(img_bgr):
+
+    hsv= cv2.cvtColor(img_bgr, cv2.color_BGR2HSV)
+
+
+    upper_red1= np.array([0,120,70])
+    lower_red1= np.array([10,255,255])
+    upper_red2= np.array([170,120,70]) 
+    lower_red2= np.array([180,255,255])
+
+    mask1=cv2.inRange(hsv, upper_red1, lower_red1)
+    mask2=cv2.inRange(hsv, upper_red2, lower_red2)
+    mask= mask1 + mask2
+
+    pixel_count= cv2.countNonZero(mask)
+
+    if pixel_count> 20:
+        ys, xs= np.where(mask>0)
+        
+        
+
+
+
+
 # Webots hands us a Robot instance representing this e-puck; all devices
 # (camera, motors, sensors) are accessed through it via getDevice().
 robot= Robot()
