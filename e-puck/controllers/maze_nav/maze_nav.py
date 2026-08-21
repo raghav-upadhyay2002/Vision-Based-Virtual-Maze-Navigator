@@ -49,6 +49,27 @@ def detect_edges(img_bgr):
     edges= cv2.Canny(blurred, 50, 150)
     return edges
 
+def detect_lines(edges):
+    lines= cv2.HoughLinesP(
+        edges,1,np.pi/180,
+        threshold=20,
+        minLineLength=15,
+        maxLineGap=5
+    )
+    return lines
+
+
+def get_wall_status_vision(img_bgr):
+    edges= detect_edges(img_bgr)
+    lines= detect_lines(edges)
+    height, width= edges.shape
+
+
+    left_zone= edges[:,0:int(width*0.33)]
+    center_zone= edges[:,int(width*0.33):int(width*0.66)]
+    right_zone= edges[:,int(width*0.66):]
+
+
 
 
 

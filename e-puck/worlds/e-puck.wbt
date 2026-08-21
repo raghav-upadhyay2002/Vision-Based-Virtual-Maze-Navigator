@@ -14,8 +14,8 @@ WorldInfo {
   title "E-puck simulation"
 }
 Viewpoint {
-  orientation -0.367001483694337 0.3712878815875086 0.8529098545288449 1.5060481239221497
-  position -0.03150306035025818 -0.532165702305872 0.5339585687406372
+  orientation 0.15215755362124053 0.2295438383204272 -0.9613312151205354 1.5777453217520818
+  position -0.3573544299378346 1.2502696854294115 0.732454888022216
   follow "e-puck"
 }
 TexturedBackground {
@@ -31,6 +31,7 @@ WoodenBox {
   size 0.1 0.1 0.1
 }
 E-puck {
+  translation 0 -0.8 0
   rotation 0 0 1 1.57
   controller "maze_nav"
   camera_width 256
