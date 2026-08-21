@@ -42,8 +42,13 @@ def detect_target(img_bgr):
     else:
         return False, None, mask
 
-        
-        
+def detect_edges(img_bgr):
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    blurred= cv2.GaussianBlur(gray, (5, 5), 0)
+    edges= cv2.Canny(blurred, 50, 150)
+    return edges
+
 
 
 
@@ -63,6 +68,22 @@ timestep= int(robot.getBasicTimeStep())
 # enable() starts the camera streaming images; without it getImage() returns None.
 camera=  robot.getDevice('camera')
 camera.enable(timestep)
+
+
+
+#sensors
+
+ps_names= ['ps0', 'ps1', 'ps2', 'ps3', 'ps4', 'ps5', 'ps6', 'ps7']
+distance_sensors= []
+for name in ps_names:
+    sensor= robot.getDevice(name)
+    sensor.enable(timestep)
+    distance_sensors.append(sensor)
+
+
+
+
+
 
 
 # Setting position to infinity puts the motor in velocity-control mode
