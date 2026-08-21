@@ -69,8 +69,31 @@ def get_wall_status_vision(img_bgr):
     center_zone= edges[:,int(width*0.33):int(width*0.66)]
     right_zone= edges[:,int(width*0.66):]
 
+    left_density= cv2.countNonZero(left_zone) / left_zone.size
+    center_density= cv2.countNonZero(center_zone) / center_zone.size
+    right_density= cv2.countNonZero(right_zone) / right_zone.size
+
+    wall_threshold= 0.15
 
 
+    wall_ahed= center_density > wall_threshold
+    opening_left= left_density<wall_threshold
+    opening_right= right_density<wall_threshold
+
+    return{
+        'wall_ahead': wall_ahed,
+        'opening_left': opening_left,
+        'opening_right': opening_right,
+        'left_density': left_density,
+        'center_density': center_density,
+        'right_density': right_density,
+        'edges': edges,
+        'lines': lines
+    }
+
+def get_sensor_debug(distance_sensors):
+    values=[s.getValue() for s in distance_sensors]
+    return values
 
 
 
