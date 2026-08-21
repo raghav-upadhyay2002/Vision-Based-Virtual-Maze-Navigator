@@ -6,6 +6,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/factory/containers/protos/WoodenBox.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/gctronic/e-puck/protos/E-puck.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/balls/protos/Ball.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/apartment_structure/protos/Wall.proto"
 
 WorldInfo {
   info [
@@ -14,8 +15,8 @@ WorldInfo {
   title "E-puck simulation"
 }
 Viewpoint {
-  orientation 0.15215755362124053 0.2295438383204272 -0.9613312151205354 1.5777453217520818
-  position -0.3573544299378346 1.2502696854294115 0.732454888022216
+  orientation 0.03539197675621337 0.004734029075281406 -0.9993622951412575 2.8757390109495193
+  position 0.7832182125343753 0.15236184667724906 0.1772821318385215
   follow "e-puck"
 }
 TexturedBackground {
@@ -24,6 +25,9 @@ TexturedBackgroundLight {
 }
 RectangleArena {
   floorSize 2 2
+}
+Wall {
+  size 0.5 0.05 0.15
 }
 WoodenBox {
   translation -0.683174 0.2 0.05

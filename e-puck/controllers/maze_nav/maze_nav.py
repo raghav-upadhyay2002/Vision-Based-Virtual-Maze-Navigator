@@ -45,11 +45,17 @@ def detect_target(img_bgr):
 def detect_edges(img_bgr):
     # Convert the image to grayscale
     gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    # Smooth out noise first so Canny doesn't pick up false edges from grain/texture.
     blurred= cv2.GaussianBlur(gray, (5, 5), 0)
+    # Canny returns a binary image: white pixels mark detected edges.
     edges= cv2.Canny(blurred, 50, 150)
     return edges
 
 def detect_lines(edges):
+    # Probabilistic Hough transform: turns clusters of edge pixels into
+    # actual line segments (endpoints), which is more useful than raw edges
+    # for recognizing straight maze walls. Currently computed but unused
+    # by get_wall_status_vision, which relies on edge density instead.
     lines= cv2.HoughLinesP(
         edges,1,np.pi/180,
         threshold=20,
@@ -64,17 +70,20 @@ def get_wall_status_vision(img_bgr):
     lines= detect_lines(edges)
     height, width= edges.shape
 
-
+    # Split the frame into left/center/right thirds so wall presence can be
+    # judged separately in each direction the robot could turn toward.
     left_zone= edges[:,0:int(width*0.33)]
     center_zone= edges[:,int(width*0.33):int(width*0.66)]
     right_zone= edges[:,int(width*0.66):]
 
+    # Fraction of edge pixels in each zone: a wall/obstacle produces a lot of
+    # edges, while open space (floor, distant background) produces few.
     left_density= cv2.countNonZero(left_zone) / left_zone.size
     center_density= cv2.countNonZero(center_zone) / center_zone.size
     right_density= cv2.countNonZero(right_zone) / right_zone.size
 
+    # Empirical cutoff: above this edge density, a zone is considered "blocked".
     wall_threshold= 0.15
-
 
     wall_ahed= center_density > wall_threshold
     opening_left= left_density<wall_threshold
@@ -92,6 +101,8 @@ def get_wall_status_vision(img_bgr):
     }
 
 def get_sensor_debug(distance_sensors):
+    # Read the current value from each of the e-puck's infrared proximity
+    # sensors (ps0-ps7), for cross-checking the vision-based wall estimate.
     values=[s.getValue() for s in distance_sensors]
     return values
 
@@ -115,8 +126,9 @@ camera.enable(timestep)
 
 
 
-#sensors
-
+# The e-puck has 8 built-in infrared proximity sensors (ps0-ps7) ringing its
+# body; enabling and collecting them all gives a physical backup for the
+# camera-based wall detection above.
 ps_names= ['ps0', 'ps1', 'ps2', 'ps3', 'ps4', 'ps5', 'ps6', 'ps7']
 distance_sensors= []
 for name in ps_names:
@@ -146,10 +158,6 @@ right_motor.setVelocity(0.0)
 
 
 
-# Lets the simulation window capture WASD key presses for manual driving.
-keyboard= robot.getKeyboard()
-keyboard.enable(timestep)
-
 print('Camera resolution:', camera.getWidth() ,'x' , camera.getHeight())
 
 
@@ -165,6 +173,8 @@ while robot.step(timestep)!=-1:
     # Drop the alpha channel so it's a standard 3-channel BGR image.
     img_bgr= cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
+    # Vision-based wall/opening estimate plus raw IR sensor readings, printed
+    # side by side so the two can be compared/debugged against each other.
     wall_status= get_wall_status_vision(img_bgr)
     sensor_values= get_sensor_debug(distance_sensors)
 
@@ -173,13 +183,14 @@ while robot.step(timestep)!=-1:
           "opening_left:", wall_status['opening_left'],
           "opening_right:", wall_status['opening_right'])
 
-    print("(densities L/C/R):", round(wall_status['left_density'],2),
+    print("(densities L/C/R:", round(wall_status['left_density'],2),
             round(wall_status['center_density'],2),
             round(wall_status['right_density'],2),")")
 
 
     print("sensors->", sensor_values)
 
+    # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
 
     # Check whether the red target is in view and which way it's offset.
@@ -200,28 +211,8 @@ while robot.step(timestep)!=-1:
 
     # getKey() returns the currently pressed key each step (or -1 if none),
     # so this re-evaluates drive direction every frame — no key means stop.
-    key= keyboard.getKey()
-    speed= 4.0
-
-    if key== ord('W'):        
-        left_motor.setVelocity(speed)
-        right_motor.setVelocity(speed)
-
-    elif key== ord('S'):      
-        left_motor.setVelocity(-speed)
-        right_motor.setVelocity(-speed)
-
-    elif key== ord('A'):     
-        left_motor.setVelocity(-speed)
-        right_motor.setVelocity(speed)
-
-    elif key== ord('D'):     
-        left_motor.setVelocity(speed)
-        right_motor.setVelocity(-speed)
-
-    else:                     
-        left_motor.setVelocity(0.0)
-        right_motor.setVelocity(0.0)
+    left_motor.setVelocity(1.0)
+    right_motor.setVelocity(1.0)
 
 # Close the preview window once the control loop ends.
 cv2.destroyAllWindows()
