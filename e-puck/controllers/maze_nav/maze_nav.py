@@ -165,6 +165,22 @@ while robot.step(timestep)!=-1:
     # Drop the alpha channel so it's a standard 3-channel BGR image.
     img_bgr= cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
+    wall_status= get_wall_status_vision(img_bgr)
+    sensor_values= get_sensor_debug(distance_sensors)
+
+
+    print("vision-> wall_ahead:", wall_status['wall_ahead'],
+          "opening_left:", wall_status['opening_left'],
+          "opening_right:", wall_status['opening_right'])
+
+    print("(densities L/C/R):", round(wall_status['left_density'],2),
+            round(wall_status['center_density'],2),
+            round(wall_status['right_density'],2),")")
+
+
+    print("sensors->", sensor_values)
+
+    cv2.imshow("Edges", wall_status['edges'])
 
     # Check whether the red target is in view and which way it's offset.
     target_visible, target_direction,mask= detect_target(img_bgr)
