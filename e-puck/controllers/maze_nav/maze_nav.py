@@ -11,7 +11,7 @@ def detect_target(img_bgr):
     # Red wraps around the hue wheel (near 0 and near 180), so two ranges
     # are needed to catch both ends and cover the full red band.
     upper_red1= np.array([0,120,70])
-    lower_red1= np.array([10,255,255])
+    lower_red1= np.array([7,255,255])
     upper_red2= np.array([170,120,70])
     lower_red2= np.array([180,255,255])
 
@@ -24,7 +24,7 @@ def detect_target(img_bgr):
     # Number of red pixels found; used as a simple "is the target visible" threshold.
     pixel_count= cv2.countNonZero(mask)
 
-    if pixel_count> 20:
+    if pixel_count> 50:
         # Average x-position of every red pixel gives the target's horizontal
         # center in the frame, which tells us which way to steer.
         ys, xs= np.where(mask>0)
@@ -172,6 +172,7 @@ while robot.step(timestep)!=-1:
 
     # Drop the alpha channel so it's a standard 3-channel BGR image.
     img_bgr= cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+   # cv2.imwrite("debug_frame.png", img_bgr)
 
     # Vision-based wall/opening estimate plus raw IR sensor readings, printed
     # side by side so the two can be compared/debugged against each other.
