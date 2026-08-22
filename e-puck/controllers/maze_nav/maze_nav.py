@@ -225,18 +225,18 @@ while robot.step(timestep)!=-1:
           "wall_right:", wall_status['wall_right'], end=' ')
 
     if wall_status['wall_ahead']:
-            print("| Wall ahead! Turning left.")
+
             left_motor.setVelocity(-3.0)
             right_motor.setVelocity(3.0)
 
 
     elif wall_status['wall_left']:
-            print("| Wall left! Turning right.")
+          
             left_motor.setVelocity(3.0)
             right_motor.setVelocity(1.0)
 
     elif wall_status['wall_right']:
-            print("| Wall right! Turning left.")
+          
             left_motor.setVelocity(1.0)
             right_motor.setVelocity(3.0)
 
