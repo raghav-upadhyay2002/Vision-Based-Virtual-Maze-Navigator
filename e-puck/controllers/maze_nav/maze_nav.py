@@ -66,6 +66,7 @@ def detect_lines(edges):
 
 
 def get_wall_status_vision(img_bgr):
+    global density_counter
     edges= detect_edges(img_bgr)
     lines= detect_lines(edges)
     height, width= edges.shape
@@ -82,23 +83,30 @@ def get_wall_status_vision(img_bgr):
     center_density= cv2.countNonZero(center_zone) / center_zone.size
     right_density= cv2.countNonZero(right_zone) / right_zone.size
 
-    # Empirical cutoff: above this edge density, a zone is considered "blocked".
-    wall_threshold= 0.15
+    # Empirical cutoff: below this edge density, a zone is considered "wall very close"
+    # (close enough that it fills the zone as a flat, low-texture surface with few edges).
+    density_epsilon= 0.005
 
-    wall_ahed= center_density > wall_threshold
-    opening_left= left_density<wall_threshold
-    opening_right= right_density<wall_threshold
 
-    return{
-        'wall_ahead': wall_ahed,
-        'opening_left': opening_left,
-        'opening_right': opening_right,
+    if left_density< density_epsilon and center_density< density_epsilon and right_density< density_epsilon:
+        density_counter+=1
+
+    else:
+        density_counter=0
+
+    wall_ahead= density_counter>=3
+
+    return {
+        'wall_ahead': wall_ahead,
         'left_density': left_density,
         'center_density': center_density,
-        'right_density': right_density,
-        'edges': edges,
-        'lines': lines
-    }
+        'right_density': right_density
+    , 'edges': edges}
+
+
+
+
+
 
 def get_sensor_debug(distance_sensors):
     # Read the current value from each of the e-puck's infrared proximity
@@ -112,7 +120,9 @@ def get_sensor_debug(distance_sensors):
 # (camera, motors, sensors) are accessed through it via getDevice().
 robot= Robot()
 
-
+# Module-level (not local to get_wall_status_vision) so it persists across control-loop
+# iterations, counting consecutive frames where all three zones read "wall very close".
+density_counter=0
 
 # Simulation step size in ms. Every device must be enabled with this value,
 # and robot.step(timestep) must be called once per control loop iteration
@@ -180,16 +190,23 @@ while robot.step(timestep)!=-1:
     sensor_values= get_sensor_debug(distance_sensors)
 
 
-    print("vision-> wall_ahead:", wall_status['wall_ahead'],
-          "opening_left:", wall_status['opening_left'],
-          "opening_right:", wall_status['opening_right'])
+    print("vision-> wall_ahead:", wall_status['wall_ahead'], end=' ')
+
+    if wall_status['wall_ahead']:
+            left_motor.setVelocity(0.0)
+            right_motor.setVelocity(0.0)
+
+    else:
+            left_motor.setVelocity(3.0)
+            right_motor.setVelocity(3.0)
+
 
     print("(densities L/C/R:", round(wall_status['left_density'],2),
             round(wall_status['center_density'],2),
             round(wall_status['right_density'],2),")")
 
 
-    print("sensors->", sensor_values)
+    #print("sensors->", sensor_values)
 
     # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
@@ -212,8 +229,6 @@ while robot.step(timestep)!=-1:
 
     # getKey() returns the currently pressed key each step (or -1 if none),
     # so this re-evaluates drive direction every frame — no key means stop.
-    left_motor.setVelocity(1.0)
-    right_motor.setVelocity(1.0)
 
 # Close the preview window once the control loop ends.
 cv2.destroyAllWindows()
