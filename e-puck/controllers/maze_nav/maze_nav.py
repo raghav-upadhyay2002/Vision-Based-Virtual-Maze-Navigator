@@ -66,7 +66,10 @@ def detect_lines(edges):
 
 
 def get_wall_status_vision(img_bgr):
-    global density_counter
+
+    global center_density_count
+    global left_density_count
+    global right_density_count
     edges= detect_edges(img_bgr)
     lines= detect_lines(edges)
     height, width= edges.shape
@@ -89,19 +92,42 @@ def get_wall_status_vision(img_bgr):
 
 
     if left_density< density_epsilon and center_density< density_epsilon and right_density< density_epsilon:
-        density_counter+=1
+        center_density_count+=1
 
     else:
-        density_counter=0
+        center_density_count=0
 
-    wall_ahead= density_counter>=3
+    wall_ahead= center_density_count>=3  
+
+
+    if left_density< density_epsilon and right_density> density_epsilon:
+        left_density_count+=1
+
+    else: 
+        left_density_count=0
+
+    wall_left= left_density_count>=3
+
+
+    if right_density< density_epsilon and left_density> density_epsilon:
+        right_density_count+=1
+
+    else:
+        right_density_count=0
+    wall_right= right_density_count>=3
 
     return {
         'wall_ahead': wall_ahead,
+        'wall_left': wall_left,
+        'wall_right': wall_right,
         'left_density': left_density,
         'center_density': center_density,
         'right_density': right_density
     , 'edges': edges}
+
+
+
+    
 
 
 
@@ -122,7 +148,9 @@ robot= Robot()
 
 # Module-level (not local to get_wall_status_vision) so it persists across control-loop
 # iterations, counting consecutive frames where all three zones read "wall very close".
-density_counter=0
+center_density_count=0
+left_density_count=0
+right_density_count=0
 
 # Simulation step size in ms. Every device must be enabled with this value,
 # and robot.step(timestep) must be called once per control loop iteration
@@ -189,21 +217,37 @@ while robot.step(timestep)!=-1:
     wall_status= get_wall_status_vision(img_bgr)
     sensor_values= get_sensor_debug(distance_sensors)
 
-
-    print("vision-> wall_ahead:", wall_status['wall_ahead'], end=' ')
+    # Print every frame's booleans unconditionally (not just the one that ends up
+    # driving the motors) so wall_left/wall_right are visible even while wall_ahead
+    # is the active branch below.
+    print("vision-> wall_ahead:", wall_status['wall_ahead'],
+          "wall_left:", wall_status['wall_left'],
+          "wall_right:", wall_status['wall_right'], end=' ')
 
     if wall_status['wall_ahead']:
-            left_motor.setVelocity(0.0)
-            right_motor.setVelocity(0.0)
-
-    else:
-            left_motor.setVelocity(3.0)
+            print("| Wall ahead! Turning left.")
+            left_motor.setVelocity(-3.0)
             right_motor.setVelocity(3.0)
 
 
-    print("(densities L/C/R:", round(wall_status['left_density'],2),
-            round(wall_status['center_density'],2),
-            round(wall_status['right_density'],2),")")
+    elif wall_status['wall_left']:
+            print("| Wall left! Turning right.")
+            left_motor.setVelocity(3.0)
+            right_motor.setVelocity(1.0)
+
+    elif wall_status['wall_right']:
+            print("| Wall right! Turning left.")
+            left_motor.setVelocity(1.0)
+            right_motor.setVelocity(3.0)
+
+    else:
+            print()
+            left_motor.setVelocity(3.0)
+            right_motor.setVelocity(3.0)
+
+    print("(densities L/C/R:", round(wall_status['left_density'],4),
+            round(wall_status['center_density'],4),
+            round(wall_status['right_density'],4),")")
 
 
     #print("sensors->", sensor_values)
