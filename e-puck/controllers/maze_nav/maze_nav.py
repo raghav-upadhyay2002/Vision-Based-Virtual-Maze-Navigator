@@ -224,6 +224,9 @@ while robot.step(timestep)!=-1:
           "wall_left:", wall_status['wall_left'],
           "wall_right:", wall_status['wall_right'], end=' ')
 
+    # Check whether the red target is in view and which way it's offset.
+    target_visible, target_direction, mask= detect_target(img_bgr)
+
     if wall_status['wall_ahead']:
 
             left_motor.setVelocity(-3.0)
@@ -240,8 +243,15 @@ while robot.step(timestep)!=-1:
             left_motor.setVelocity(1.0)
             right_motor.setVelocity(3.0)
 
+    elif target_visible:
+         if target_direction== 'left':
+            left_motor.setVelocity(1.0)
+            right_motor.setVelocity(3.0)
+         elif target_direction== 'right':
+            left_motor.setVelocity(3.0)
+            right_motor.setVelocity(1.0)
+
     else:
-            print()
             left_motor.setVelocity(3.0)
             right_motor.setVelocity(3.0)
 
@@ -254,9 +264,6 @@ while robot.step(timestep)!=-1:
 
     # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
-
-    # Check whether the red target is in view and which way it's offset.
-    target_visible, target_direction,mask= detect_target(img_bgr)
 
     if target_visible:
         print('Target detected! Direction:', target_direction)
