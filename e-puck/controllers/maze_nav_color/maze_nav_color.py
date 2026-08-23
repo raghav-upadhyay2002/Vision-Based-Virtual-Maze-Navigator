@@ -121,6 +121,49 @@ def detect_walls_status(img_bgr, split_ratio):
         'edges': edges
     }
 
+def robot_steer(wall_status, target_found, target_direction):
+    base_speed=3.0
+    turn_speed=1.0
+
+    wall_ahead= wall_status['wall_ahead']
+    wall_left= wall_status['wall_left']
+    wall_right= wall_status['wall_right']
+
+
+    if wall_ahead:
+        if wall_left and not wall_right:
+            left_motor.setVelocity(turn_speed)
+            right_motor.setVelocity(-turn_speed)
+
+        else:
+            left_motor.setVelocity(-turn_speed)
+            right_motor.setVelocity(turn_speed)
+
+    
+    elif wall_left:
+        left_motor.setVelocity(base_speed)
+        right_motor.setVelocity(turn_speed)
+
+
+    elif wall_right:
+        left_motor.setVelocity(turn_speed)
+        right_motor.setVelocity(base_speed)
+
+
+    elif target_found and target_direction== 'right':
+        left_motor.setVelocity(base_speed)
+        right_motor.setVelocity(turn_speed)       
+
+    elif target_found and target_direction== 'left':
+        left_motor.setVelocity(turn_speed)
+        right_motor.setVelocity(base_speed)
+
+    else:
+        left_motor.setVelocity(base_speed)
+        right_motor.setVelocity(base_speed)       
+
+
+
 
 
 
@@ -153,8 +196,9 @@ while robot.step(time_step)!=-1:
           round(wall_status['center_density'],4),
           round(wall_status['right_density'],4),")")
 
-    left_motor.setVelocity(1.0)
-    right_motor.setVelocity(1.0)
+    target_found, target_direction, target_mask= detect_target(img_bgr)
+    robot_steer(wall_status, target_found, target_direction)
+
     cv2.imshow("Edges", wall_status['edges'])
     cv2.imshow("Camera", img_bgr)
     cv2.waitKey(1)
