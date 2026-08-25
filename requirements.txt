@@ -1,2 +1,7 @@
-opencv-python
-numpy
+opencv-python==5.0.0.93
+numpy==2.5.2
+
+# Note: the `controller` module (Webots Python API) used by maze_nav.py is not
+# installable via pip. It ships with the Webots installation and is made
+# available by running this script through Webots (or by adding Webots'
+# lib/controller/python directory to PYTHONPATH).
