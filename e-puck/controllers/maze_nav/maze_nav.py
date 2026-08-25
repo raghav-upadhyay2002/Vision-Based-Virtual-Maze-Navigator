@@ -114,12 +114,12 @@ def get_wall_status_vision(img_bgr):
 
     else:
         right_density_count=0
-    wall_right= right_density_count>=3
+    wall_front_right= right_density_count>=3
 
     return {
         'wall_ahead': wall_ahead,
         'wall_left': wall_left,
-        'wall_right': wall_right,
+        'wall_front_right': wall_front_right,
         'left_density': left_density,
         'center_density': center_density,
         'right_density': right_density
@@ -140,44 +140,25 @@ def bottom_img_right(img_bgr_right, split_ratio):
 
     return img_bottom_right
 
-def detect_edges_right(img_bottom_right):
-
-    gray_img_right= cv2.cvtColor(img_bottom_right, cv2.COLOR_BGR2GRAY)
-    blurred_right= cv2.GaussianBlur(gray_img_right, (5,5),0)
-    edges_right= cv2.Canny(blurred_right,50,150)
-    return edges_right
-
-
-def detect_line_right(edges_right):
-    lines_right= cv2.HoughLinesP(
-        edges_right,1,np.pi/180,
-        threshold=20,
-        minLineLength=15,
-        maxLineGap=5)
-    return lines_right 
-
-
 
 def detect_walls_status_right(img_bgr_right, split_ratio):
 
     img_bottom_right= bottom_img_right(img_bgr_right, split_ratio)
 
-    edges_right= detect_edges_right(img_bottom_right)
+    gray_right= cv2.cvtColor(img_bottom_right, cv2.COLOR_BGR2GRAY)
 
-    lines_right= detect_line_right(edges_right)
+    mean_right= np.mean(gray_right)
 
-    height_right, width_right= edges_right.shape
-
-    density_right= cv2.countNonZero(edges_right)/edges_right.size
-    max_thresold= 0.01
+    drop_threshold= 195.0
 
 
-    wall_right= density_right>max_thresold
+    wall_right= mean_right< drop_threshold
+
+
     return{
         'wall_right': wall_right,
-        'density_right': density_right,
-        'edges_right': edges_right
-
+        'mean_right': mean_right,
+        'img_bottom_right': img_bottom_right
     }
 
 
@@ -271,9 +252,9 @@ while robot.step(timestep)!=-1:
     # Print every frame's booleans unconditionally (not just the one that ends up
     # driving the motors) so wall_left/wall_right are visible even while wall_ahead
     # is the active branch below.
-    print("vision-> wall_ahead:", wall_status['wall_ahead'],
-          "wall_left:", wall_status['wall_left'],
-          "wall_right:", wall_status['wall_right'], end=' ')
+    #print("vision-> wall_ahead:", wall_status['wall_ahead'],
+         # "wall_left:", wall_status['wall_left'],
+         # "wall_front_right:", wall_status['wall_front_right'], end=' ')
 
     
 
@@ -281,9 +262,15 @@ while robot.step(timestep)!=-1:
     target_visible, target_direction, mask= detect_target(img_bgr_front)
 
     if wall_status['wall_ahead']:
+        if wall_status_right['wall_right']:
+            left_motor.setVelocity(0.0)
+            right_motor.setVelocity(3.0)
 
+        else:
             left_motor.setVelocity(3.0)
-            right_motor.setVelocity(-3.0)
+            right_motor.setVelocity(0.0)
+            
+
 
 
     elif wall_status['wall_left']:
@@ -291,7 +278,7 @@ while robot.step(timestep)!=-1:
             left_motor.setVelocity(3.0)
             right_motor.setVelocity(0.0)
 
-    elif wall_status['wall_right']:
+    elif wall_status['wall_front_right']:
 
             left_motor.setVelocity(0.0)
             right_motor.setVelocity(3.0)
@@ -308,16 +295,15 @@ while robot.step(timestep)!=-1:
             left_motor.setVelocity(3.0)
             right_motor.setVelocity(3.0)
 
-    print("(densities L/C/R:", round(wall_status['left_density'],4),
-            round(wall_status['center_density'],4),
-            round(wall_status['right_density'],4),")")
+    #print("(densities L/C/R:", round(wall_status['left_density'],4),
+          #  round(wall_status['center_density'],4),
+           # round(wall_status['right_density'],4),")")
 
 
     #print("sensors->", sensor_values)
 
     # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
-    cv2.imshow("Edges_right", wall_status_right['edges_right'])
 
     if target_visible:
         print('Target detected! Direction:', target_direction)
@@ -329,14 +315,14 @@ while robot.step(timestep)!=-1:
     cv2.imshow("Robot Camera Feed", cv2.resize(img_bgr_front, (300, 300)))
 
     #cv2.imshow("Left Camera", cv2.resize(img_bgr_left, (300, 300)))
-    cv2.imshow("Right Camera", cv2.resize(img_bgr_right, (300, 300)))
+    cv2.imshow("Right Camera", cv2.resize(wall_status_right['img_bottom_right'], (300, 300)))
 
 
     # Required for OpenCV to actually paint/refresh the window each frame.
     cv2.waitKey(1)
 
     print("vision-right-> wall_right:", wall_status_right['wall_right'],
-          "density:", round(wall_status_right['density_right'],4))
+          "mean:", round(wall_status_right['mean_right'],4))
 
     # getKey() returns the currently pressed key each step (or -1 if none),
     # so this re-evaluates drive direction every frame — no key means stop.
