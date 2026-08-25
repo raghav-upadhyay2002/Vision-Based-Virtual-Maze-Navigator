@@ -6,7 +6,6 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/gctronic/e-puck/protos/E-puck.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/balls/protos/Ball.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/apartment_structure/protos/Wall.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Roughcast.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/BrushedAluminium.proto"
 
 WorldInfo {
@@ -16,8 +15,8 @@ WorldInfo {
   title "E-puck simulation"
 }
 Viewpoint {
-  orientation -0.5843740064175585 0.5865694610731637 0.56075243018629 2.1162730182054412
-  position -0.0965738724059968 0.11544882283542401 8.158031688288897
+  orientation -0.44861218469857206 0.7393189996079604 0.5021499024779942 1.7589682100246717
+  position -1.178388840126624 -2.0088453582827395 6.21954575743071
   follow "e-puck"
 }
 TexturedBackground {
@@ -26,7 +25,8 @@ TexturedBackgroundLight {
   castShadows FALSE
 }
 RectangleArena {
-  floorSize 4 4
+  translation -0.51 -1 0
+  floorSize 3 2
   floorTileSize 1 1
   floorAppearance PBRAppearance {
     baseColor 0.85 0.85 0.85
@@ -38,7 +38,7 @@ RectangleArena {
   }
 }
 Wall {
-  translation -1.75 -1 0
+  translation -1.73 -1 0
   name "maze_wall_0"
   size 0.55 0.05 0.15
   appearance DEF MAZE_WALL_APPEARANCE PBRAppearance {
@@ -48,74 +48,14 @@ Wall {
   }
 }
 Wall {
-  translation -1.75 1 0
-  name "maze_wall_1"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
   translation -1.25 -1 0
   name "maze_wall_2"
   size 0.55 0.05 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
 Wall {
-  translation -1.25 -0.5 0
-  name "maze_wall_3"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -1.25 0 0
-  name "maze_wall_4"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -1.25 0.5 0
-  name "maze_wall_5"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -1.25 1 0
-  name "maze_wall_6"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -1.25 1.5 0
-  name "maze_wall_7"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
   translation -0.75 -1.5 0
   name "maze_wall_8"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.75 -0.5 0
-  name "maze_wall_9"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.75 0 0
-  name "maze_wall_10"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.75 0.5 0
-  name "maze_wall_11"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.75 1 0
-  name "maze_wall_12"
   size 0.55 0.05 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
@@ -132,92 +72,20 @@ Wall {
   appearance USE MAZE_WALL_APPEARANCE
 }
 Wall {
-  translation -0.25 0 0
-  name "maze_wall_15"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.25 0.5 0
-  name "maze_wall_16"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.25 1.5 0
-  name "maze_wall_17"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
   translation 0.25 -0.5 0
   name "maze_wall_18"
   size 0.55 0.05 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
 Wall {
-  translation 0.25 1 0
-  name "maze_wall_19"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 0.25 1.5 0
-  name "maze_wall_20"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 0.75 0 0
+  translation -0.23 -0.5 0
   name "maze_wall_21"
   size 0.55 0.05 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
 Wall {
-  translation 0.75 1 0
-  name "maze_wall_22"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.25 -0.5 0
-  name "maze_wall_23"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.25 0 0
-  name "maze_wall_24"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.25 0.5 0
-  name "maze_wall_25"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.25 1 0
-  name "maze_wall_26"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.75 0 0
-  name "maze_wall_27"
-  size 0.55 0.05 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -1.5 -1.75 0
+  translation -1.5 -1.71 0
   name "maze_wall_28"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -1.5 0.25 0
-  name "maze_wall_29"
   size 0.05 0.55 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
@@ -228,20 +96,8 @@ Wall {
   appearance USE MAZE_WALL_APPEARANCE
 }
 Wall {
-  translation -1 1.75 0
-  name "maze_wall_31"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
   translation -0.5 -0.75 0
   name "maze_wall_32"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation -0.5 1.25 0
-  name "maze_wall_33"
   size 0.05 0.55 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
@@ -252,19 +108,7 @@ Wall {
   appearance USE MAZE_WALL_APPEARANCE
 }
 Wall {
-  translation 0 -0.25 0
-  name "maze_wall_35"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 0 0.75 0
-  name "maze_wall_36"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 0.5 -1.75 0
+  translation 0.5 -1.71 0
   name "maze_wall_37"
   size 0.05 0.55 0.15
   appearance USE MAZE_WALL_APPEARANCE
@@ -278,60 +122,6 @@ Wall {
 Wall {
   translation 0.5 -0.75 0
   name "maze_wall_39"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 0.5 0.25 0
-  name "maze_wall_40"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1 -1.25 0
-  name "maze_wall_41"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1 -0.75 0
-  name "maze_wall_42"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1 -0.25 0
-  name "maze_wall_43"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1 1.25 0
-  name "maze_wall_44"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.5 -1.75 0
-  name "maze_wall_45"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.5 -1.25 0
-  name "maze_wall_46"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.5 0.75 0
-  name "maze_wall_47"
-  size 0.05 0.55 0.15
-  appearance USE MAZE_WALL_APPEARANCE
-}
-Wall {
-  translation 1.5 1.75 0
-  name "maze_wall_48"
   size 0.05 0.55 0.15
   appearance USE MAZE_WALL_APPEARANCE
 }
@@ -361,6 +151,6 @@ E-puck {
   ]
 }
 Ball {
-  translation 1.83 -1.94 0.030379
+  translation -0.29 -0.65 0.030379
   color 1 0 0
 }
