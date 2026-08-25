@@ -7,6 +7,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/balls/protos/Ball.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/apartment_structure/protos/Wall.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Roughcast.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/BrushedAluminium.proto"
 
 WorldInfo {
   info [
@@ -22,25 +23,28 @@ Viewpoint {
 TexturedBackground {
 }
 TexturedBackgroundLight {
+  castShadows FALSE
 }
 RectangleArena {
-  floorSize 4.06 4.06
+  floorSize 4 4
   floorTileSize 1 1
   floorAppearance PBRAppearance {
     baseColor 0.85 0.85 0.85
     roughness 0.7
     metalness 0
   }
+  wallAppearance BrushedAluminium {
+    colorOverride 0.25 0.25 0.25
+  }
 }
 Wall {
   translation -1.75 -1 0
   name "maze_wall_0"
   size 0.55 0.05 0.15
-  appearance DEF MAZE_WALL_APPEARANCE Roughcast {
-    colorOverride 0.25 0.25 0.25
-    textureTransform TextureTransform {
-      scale 2.4 1
-    }
+  appearance DEF MAZE_WALL_APPEARANCE PBRAppearance {
+    baseColor 0.25 0.25 0.25
+    roughness 0.7
+    metalness 0
   }
 }
 Wall {
@@ -332,15 +336,29 @@ Wall {
   appearance USE MAZE_WALL_APPEARANCE
 }
 E-puck {
-  hidden position_0_0 0.3835890389786083
-  hidden position_0_1 0.38358903792802573
-  hidden rotation_1 0 1 0 0.3835890389786086
-  hidden rotation_2 0 1 0 0.3835890379280259
   translation -1.92095 -1.9106 0.0248092
   rotation -0.011050811237705134 0.011093858563206958 0.9998773954206427 1.570121925276439
   controller "maze_nav"
   camera_width 256
   camera_height 192
+  turretSlot [
+    Camera {
+      translation 0 0.02 0
+      rotation 0 0 1 1.5708
+      name "camera_left"
+      fieldOfView 0.84
+      width 256
+      height 192
+    }
+    Camera {
+      translation 0 -0.02 0
+      rotation 0 0 1 -1.5708
+      name "camera_right"
+      fieldOfView 0.84
+      width 256
+      height 192
+    }
+  ]
 }
 Ball {
   translation 1.83 -1.94 0.030379

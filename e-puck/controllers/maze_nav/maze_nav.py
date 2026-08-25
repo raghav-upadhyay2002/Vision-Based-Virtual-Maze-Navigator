@@ -97,13 +97,13 @@ def get_wall_status_vision(img_bgr):
     else:
         center_density_count=0
 
-    wall_ahead= center_density_count>=3  
+    wall_ahead= center_density_count>=3
 
 
     if left_density< density_epsilon and right_density> density_epsilon:
         left_density_count+=1
 
-    else: 
+    else:
         left_density_count=0
 
     wall_left= left_density_count>=3
@@ -127,18 +127,75 @@ def get_wall_status_vision(img_bgr):
 
 
 
-    
 
 
 
 
+def bottom_img_right(img_bgr_right, split_ratio):
+    height, width= img_bgr_right.shape[:2]
+
+    split_y= int(height*(1-split_ratio))
+    img_bottom_right= img_bgr_right[split_y:,:]
 
 
-def get_sensor_debug(distance_sensors):
-    # Read the current value from each of the e-puck's infrared proximity
-    # sensors (ps0-ps7), for cross-checking the vision-based wall estimate.
-    values=[s.getValue() for s in distance_sensors]
-    return values
+    return img_bottom_right
+
+def detect_edges_right(img_bottom_right):
+
+    gray_img_right= cv2.cvtColor(img_bottom_right, cv2.COLOR_BGR2GRAY)
+    blurred_right= cv2.GaussianBlur(gray_img_right, (5,5),0)
+    edges_right= cv2.Canny(blurred_right,50,150)
+    return edges_right
+
+
+def detect_line_right(edges_right):
+    lines_right= cv2.HoughLinesP(
+        edges_right,1,np.pi/180,
+        threshold=20,
+        minLineLength=15,
+        maxLineGap=5)
+    return lines_right 
+
+
+
+def detect_walls_status_right(img_bgr_right, split_ratio):
+
+    img_bottom_right= bottom_img_right(img_bgr_right, split_ratio)
+
+    edges_right= detect_edges_right(img_bottom_right)
+
+    lines_right= detect_line_right(edges_right)
+
+    height_right, width_right= edges_right.shape
+
+    density_right= cv2.countNonZero(edges_right)/edges_right.size
+    max_thresold= 0.02
+    min_line_length=15
+    line_count_right=0
+    angles_right=[]
+
+    if lines_right is not None:
+        for line in lines_right.reshape(-1, 4):
+            x1,y1,x2,y2= line
+            length= np.hypot(x2-x1,y2-y1)
+            if length> min_line_length:
+                line_count_right+=1
+                angle=np.degrees(np.arctan2(y2-y1, x2-x1))
+                angles_right.append(angle)
+
+    avg_angle_right= np.mean(angles_right) if angles_right else None
+
+    min_line_count=2
+    wall_right= (density_right>max_thresold) and (line_count_right>=min_line_count)
+
+    return{
+        'wall_right': wall_right,
+        'density_right': density_right,
+        'line_count_right': line_count_right,
+        'avg_angle_right': avg_angle_right,
+        'edges_right': edges_right
+
+    }
 
 
 
@@ -159,20 +216,15 @@ timestep= int(robot.getBasicTimeStep())
 
 
 # enable() starts the camera streaming images; without it getImage() returns None.
-camera=  robot.getDevice('camera')
-camera.enable(timestep)
+camera_front=  robot.getDevice('camera')
+camera_front.enable(timestep)
 
+camera_left= robot.getDevice('camera_left')
+camera_left.enable(timestep)
 
+camera_right= robot.getDevice('camera_right')
+camera_right.enable(timestep)
 
-# The e-puck has 8 built-in infrared proximity sensors (ps0-ps7) ringing its
-# body; enabling and collecting them all gives a physical backup for the
-# camera-based wall detection above.
-ps_names= ['ps0', 'ps1', 'ps2', 'ps3', 'ps4', 'ps5', 'ps6', 'ps7']
-distance_sensors= []
-for name in ps_names:
-    sensor= robot.getDevice(name)
-    sensor.enable(timestep)
-    distance_sensors.append(sensor)
 
 
 
@@ -196,26 +248,41 @@ right_motor.setVelocity(0.0)
 
 
 
-print('Camera resolution:', camera.getWidth() ,'x' , camera.getHeight())
+print('Camera resolution front:', camera_front.getWidth() ,'x' , camera_front.getHeight())
+print('Camera resolution front:', camera_left.getWidth() ,'x' , camera_left.getHeight())
+print('Camera resolution front:', camera_right.getWidth() ,'x' , camera_right.getHeight())
+
 
 
 while robot.step(timestep)!=-1:
     # Raw camera image comes back as a flat byte buffer in BGRA order.
-    image= camera.getImage()
-    width= camera.getWidth()
-    height=camera.getHeight()
+    image_front= camera_front.getImage()
+    width_front= camera_front.getWidth()
+    height_front=camera_front.getHeight()
+
+    image_left= camera_left.getImage()
+    width_left= camera_left.getWidth()
+    height_left=camera_left.getHeight()
+
+    image_right= camera_right.getImage()
+    width_right= camera_right.getWidth()
+    height_right=camera_right.getHeight()
+
 
     # Reshape the flat buffer into a (height, width, 4) BGRA array OpenCV can use.
-    img= np.frombuffer(image, np.uint8).reshape((height,width,4))
+    img_front= np.frombuffer(image_front, np.uint8).reshape((height_front,width_front,4))
+    img_left= np.frombuffer(image_left, np.uint8).reshape((height_left,width_left,4))
+    img_right= np.frombuffer(image_right, np.uint8).reshape((height_right,width_right,4))
 
     # Drop the alpha channel so it's a standard 3-channel BGR image.
-    img_bgr= cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+    img_bgr_front= cv2.cvtColor(img_front, cv2.COLOR_BGRA2BGR)
+    img_bgr_left= cv2.cvtColor(img_left, cv2.COLOR_BGRA2BGR)
+    img_bgr_right= cv2.cvtColor(img_right, cv2.COLOR_BGRA2BGR)
    # cv2.imwrite("debug_frame.png", img_bgr)
 
     # Vision-based wall/opening estimate plus raw IR sensor readings, printed
     # side by side so the two can be compared/debugged against each other.
-    wall_status= get_wall_status_vision(img_bgr)
-    sensor_values= get_sensor_debug(distance_sensors)
+    wall_status= get_wall_status_vision(img_bgr_front)
 
     # Print every frame's booleans unconditionally (not just the one that ends up
     # driving the motors) so wall_left/wall_right are visible even while wall_ahead
@@ -225,31 +292,31 @@ while robot.step(timestep)!=-1:
           "wall_right:", wall_status['wall_right'], end=' ')
 
     # Check whether the red target is in view and which way it's offset.
-    target_visible, target_direction, mask= detect_target(img_bgr)
+    target_visible, target_direction, mask= detect_target(img_bgr_front)
 
     if wall_status['wall_ahead']:
 
-            left_motor.setVelocity(-3.0)
-            right_motor.setVelocity(3.0)
+            left_motor.setVelocity(3.0)
+            right_motor.setVelocity(-3.0)
 
 
     elif wall_status['wall_left']:
-          
+
             left_motor.setVelocity(3.0)
-            right_motor.setVelocity(1.0)
+            right_motor.setVelocity(0.0)
 
     elif wall_status['wall_right']:
-          
-            left_motor.setVelocity(1.0)
+
+            left_motor.setVelocity(0.0)
             right_motor.setVelocity(3.0)
 
     elif target_visible:
          if target_direction== 'left':
-            left_motor.setVelocity(1.0)
+            left_motor.setVelocity(0.0)
             right_motor.setVelocity(3.0)
          elif target_direction== 'right':
             left_motor.setVelocity(3.0)
-            right_motor.setVelocity(1.0)
+            right_motor.setVelocity(0.0)
 
     else:
             left_motor.setVelocity(3.0)
@@ -264,6 +331,8 @@ while robot.step(timestep)!=-1:
 
     # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
+    wall_status_right= detect_walls_status_right(img_bgr_right, split_ratio=0.4)
+    cv2.imshow("Edges_right", wall_status_right['edges_right'])
 
     if target_visible:
         print('Target detected! Direction:', target_direction)
@@ -272,10 +341,19 @@ while robot.step(timestep)!=-1:
 
 
     # Show a resized preview of what the robot's camera currently sees.
-    cv2.imshow("Robot Camera Feed", cv2.resize(img_bgr, (300, 300)))
+    cv2.imshow("Robot Camera Feed", cv2.resize(img_bgr_front, (300, 300)))
+
+    #cv2.imshow("Left Camera", cv2.resize(img_bgr_left, (300, 300)))
+    cv2.imshow("Right Camera", cv2.resize(img_bgr_right, (300, 300)))
+
 
     # Required for OpenCV to actually paint/refresh the window each frame.
     cv2.waitKey(1)
+
+    print("vision-right-> wall_right:", wall_status_right['wall_right'],
+          "density:", round(wall_status_right['density_right'],4),
+          "lines:", wall_status_right['line_count_right'],
+          "angle:", wall_status_right['avg_angle_right'])
 
 
     # getKey() returns the currently pressed key each step (or -1 if none),
@@ -283,5 +361,4 @@ while robot.step(timestep)!=-1:
 
 # Close the preview window once the control loop ends.
 cv2.destroyAllWindows()
-
 
