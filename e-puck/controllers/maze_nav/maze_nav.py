@@ -169,30 +169,13 @@ def detect_walls_status_right(img_bgr_right, split_ratio):
     height_right, width_right= edges_right.shape
 
     density_right= cv2.countNonZero(edges_right)/edges_right.size
-    max_thresold= 0.02
-    min_line_length=15
-    line_count_right=0
-    angles_right=[]
+    max_thresold= 0.01
 
-    if lines_right is not None:
-        for line in lines_right.reshape(-1, 4):
-            x1,y1,x2,y2= line
-            length= np.hypot(x2-x1,y2-y1)
-            if length> min_line_length:
-                line_count_right+=1
-                angle=np.degrees(np.arctan2(y2-y1, x2-x1))
-                angles_right.append(angle)
 
-    avg_angle_right= np.mean(angles_right) if angles_right else None
-
-    min_line_count=2
-    wall_right= (density_right>max_thresold) and (line_count_right>=min_line_count)
-
+    wall_right= density_right>max_thresold
     return{
         'wall_right': wall_right,
         'density_right': density_right,
-        'line_count_right': line_count_right,
-        'avg_angle_right': avg_angle_right,
         'edges_right': edges_right
 
     }
@@ -283,6 +266,7 @@ while robot.step(timestep)!=-1:
     # Vision-based wall/opening estimate plus raw IR sensor readings, printed
     # side by side so the two can be compared/debugged against each other.
     wall_status= get_wall_status_vision(img_bgr_front)
+    wall_status_right= detect_walls_status_right(img_bgr_right, split_ratio=0.4)
 
     # Print every frame's booleans unconditionally (not just the one that ends up
     # driving the motors) so wall_left/wall_right are visible even while wall_ahead
@@ -290,6 +274,8 @@ while robot.step(timestep)!=-1:
     print("vision-> wall_ahead:", wall_status['wall_ahead'],
           "wall_left:", wall_status['wall_left'],
           "wall_right:", wall_status['wall_right'], end=' ')
+
+    
 
     # Check whether the red target is in view and which way it's offset.
     target_visible, target_direction, mask= detect_target(img_bgr_front)
@@ -331,7 +317,6 @@ while robot.step(timestep)!=-1:
 
     # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
-    wall_status_right= detect_walls_status_right(img_bgr_right, split_ratio=0.4)
     cv2.imshow("Edges_right", wall_status_right['edges_right'])
 
     if target_visible:
@@ -351,10 +336,7 @@ while robot.step(timestep)!=-1:
     cv2.waitKey(1)
 
     print("vision-right-> wall_right:", wall_status_right['wall_right'],
-          "density:", round(wall_status_right['density_right'],4),
-          "lines:", wall_status_right['line_count_right'],
-          "angle:", wall_status_right['avg_angle_right'])
-
+          "density:", round(wall_status_right['density_right'],4))
 
     # getKey() returns the currently pressed key each step (or -1 if none),
     # so this re-evaluates drive direction every frame — no key means stop.
