@@ -1,6 +1,9 @@
 from controller import Robot
 import numpy as np
 import cv2
+import os
+import datetime 
+import csv
 
 
 def detect_target(img_bgr):
@@ -210,6 +213,19 @@ print('Camera resolution front:', camera_front.getWidth(), 'x', camera_front.get
 print('Camera resolution left:', camera_left.getWidth(), 'x', camera_left.getHeight())
 print('Camera resolution right:', camera_right.getWidth(), 'x', camera_right.getHeight())
 
+log_dir = os.path.dirname(os.path.abspath(__file__))
+log_filename = 'run_log_' + datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '.csv'
+log_path = os.path.join(log_dir, log_filename)
+log_file = open(log_path, 'w', newline='')
+log_writer = csv.writer(log_file)
+log_writer.writerow([
+    'sim_time_s',
+    'wall_ahead', 'wall_left', 'wall_front_right', 'wall_right',
+    'left_density', 'center_density', 'right_density', 'mean_right',
+    'target_visible', 'target_direction',
+    'left_velocity', 'right_velocity'
+])
+
 while robot.step(timestep) != -1:
     # Raw camera image comes back as a flat byte buffer in BGRA order.
     image_front = camera_front.getImage()
@@ -256,35 +272,49 @@ while robot.step(timestep) != -1:
     if wall_status['wall_ahead']:
         if wall_status_right['wall_right']:
             # Right side also blocked -> turn left.
-            left_motor.setVelocity(0.0)
-            right_motor.setVelocity(3.0)
+            left_velocity = 0.0
+            right_velocity = 3.0
         else:
             # Right side open -> turn right.
-            left_motor.setVelocity(3.0)
-            right_motor.setVelocity(0.0)
+            left_velocity = 3.0
+            right_velocity = 0.0
 
     elif wall_status['wall_left']:
         # Wall hugging the left -> steer away from it (turn right).
-        left_motor.setVelocity(3.0)
-        right_motor.setVelocity(0.0)
+        left_velocity = 3.0
+        right_velocity = 0.0
 
     elif wall_status['wall_front_right']:
         # Wall hugging the right -> steer away from it (turn left).
-        left_motor.setVelocity(0.0)
-        right_motor.setVelocity(3.0)
+        left_velocity = 0.0
+        right_velocity = 3.0
 
-    elif target_visible:
-        if target_direction == 'left':
-            left_motor.setVelocity(0.0)
-            right_motor.setVelocity(3.0)
-        elif target_direction == 'right':
-            left_motor.setVelocity(3.0)
-            right_motor.setVelocity(0.0)
-        # target_direction == 'center' falls through to driving straight below.
+    elif target_visible and target_direction == 'left':
+        left_velocity = 0.0
+        right_velocity = 3.0
+
+    elif target_visible and target_direction == 'right':
+        left_velocity = 3.0
+        right_velocity = 0.0
 
     else:
-        left_motor.setVelocity(3.0)
-        right_motor.setVelocity(3.0)
+        # target_direction == 'center' (or no target) -> drive straight.
+        left_velocity = 3.0
+        right_velocity = 3.0
+
+    left_motor.setVelocity(left_velocity)
+    right_motor.setVelocity(right_velocity)
+
+    log_writer.writerow([
+        round(robot.getTime(), 3),
+        wall_status['wall_ahead'], wall_status['wall_left'], wall_status['wall_front_right'],
+        wall_status_right['wall_right'],
+        round(wall_status['left_density'], 5), round(wall_status['center_density'], 5),
+        round(wall_status['right_density'], 5), round(wall_status_right['mean_right'], 3),
+        target_visible, target_direction,
+        left_velocity, right_velocity
+    ])
+    log_file.flush()
 
     # Visualize the Canny edge map used for the wall density calculation.
     cv2.imshow("Edges", wall_status['edges'])
@@ -306,3 +336,5 @@ while robot.step(timestep) != -1:
 
 # Close all preview windows once the control loop ends.
 cv2.destroyAllWindows()
+log_file.close()
+

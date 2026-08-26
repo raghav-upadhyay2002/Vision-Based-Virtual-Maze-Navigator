@@ -23,10 +23,6 @@ Implemented:
 - HSV-based red target detection with left/center/right direction estimation.
 - Closed-loop autonomous control combining wall avoidance and target seeking.
 
-Not yet implemented:
-- Use of the left camera in navigation logic (currently enabled but unused).
-- Persistent mapping/occupancy grid or path planning beyond reactive, one-step-ahead decisions.
-- Loop closure / stopping condition once the target is actually reached.
 
 ## Project Structure
 ```
