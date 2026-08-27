@@ -37,7 +37,6 @@ Section 4 documents each of those in the order they were encountered.
 |---|---|---|
 | Front camera | `camera` | Wall detection ahead / left / front-right; red target detection |
 | Right camera | `camera_right` | Near-field wall detection on the right side (turn arbitration) |
-| Left camera | `camera_left` | Enabled and streaming, **not currently used** for navigation |
 | Left/right wheel motors | `left wheel motor`, `right wheel motor` | Velocity-controlled actuation (`setPosition(inf)`) |
 
 All devices are enabled at the simulator's basic timestep, and the control loop runs once
