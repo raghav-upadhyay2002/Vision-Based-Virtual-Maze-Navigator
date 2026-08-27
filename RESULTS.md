@@ -395,10 +395,6 @@ near with far (Problem 5), while acting on too short a time window produced phan
 - Target detection uses fixed HSV bounds with `V ≥ 70`; sufficiently dark conditions will
   push target pixels below that bound and the target will become invisible even while wall
   detection still works.
-- `camera_left` is enabled but unused; left-side wall detection currently relies on the
-  front camera's left zone only.
-- `HoughLinesP` is computed every frame but unused — wasted computation, and a candidate
-  for either removal or actual integration.
 - Fixed empirical constants (`density_epsilon = 0.005`, `split_ratio = 0.4`, 3-frame
   debounce, target pixel count > 50) are tuned to this world and have not been validated
   across layouts.
