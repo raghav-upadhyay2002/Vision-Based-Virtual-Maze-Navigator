@@ -35,7 +35,6 @@ Robustness testing against changing visual conditions is in progress:
 | Low illumination (0.5) | Failure found and diagnosed; relative-threshold fix specified but **not yet on `main`** (see [Problem 6](RESULTS.md#problem-6--low-illumination-broke-the-absolute-brightness-threshold)) |
 | Blur | No degradation |
 | Partial occlusion | Handled by existing zone logic |
-| Unfamiliar environment | Not yet run |
 
 ## Key design decision
 

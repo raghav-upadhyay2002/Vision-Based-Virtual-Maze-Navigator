@@ -163,14 +163,13 @@ successfully** under baseline conditions. A recording of a successful baseline r
 available here:
 [demo video](https://drive.google.com/file/d/1d2R76Qy9Kmbr4RCgXTRKCL5U3j1-cjew/view?usp=sharing).
 
-### 3.3 Perturbation conditions
+### 3.3 Visual conditions
 
 | Condition | How it was induced | Status |
 |---|---|---|
 | Low illumination | `TexturedBackgroundLight.luminosity` reduced from 1.0 → 0.5 | Tested — failure found; fix specified (not yet on `main`) |
 | Blur | `BLUR_ENABLED = True` in `maze_nav.py`: a 9 × 9 Gaussian applied to every camera frame before any processing | Tested — no degradation |
 | Partial occlusion | Wall partially blocking the front camera's field of view | Tested — handled by existing zone logic |
-| Unfamiliar environment | Different maze layout / target placement, same controller | *Pending* |
 
 ### 3.4 Metrics
 
