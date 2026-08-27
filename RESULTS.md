@@ -400,8 +400,6 @@ near with far (Problem 5), while acting on too short a time window produced phan
   across layouts.
 
 **Natural next steps**
-
-- Complete the unfamiliar-environment trial to test whether the tuned constants transfer.
 - Apply the same absolute→relative reformulation to the target detector, so it degrades
   gracefully under dimming.
 - Add an explicit **recovery behaviour**: detect when the robot is oscillating or looping
