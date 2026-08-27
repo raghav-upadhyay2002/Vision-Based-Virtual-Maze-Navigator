@@ -4,6 +4,8 @@ An autonomous mobile robot that navigates a 3D maze and locates a target object 
 **camera input only** — no ground-truth pose, no odometry map, no distance sensors in the
 control loop. Built on the [Webots](https://cyberbotics.com/) simulator with an e-puck robot.
 
+🎥 **[Demo video: the robot navigating the maze to the target →](https://drive.google.com/file/d/1d2R76Qy9Kmbr4RCgXTRKCL5U3j1-cjew/view?usp=sharing)**
+
 📄 **[Full write-up: pipeline, experiments, failures and fixes →](RESULTS.md)**
 
 ---
@@ -30,9 +32,10 @@ Robustness testing against changing visual conditions is in progress:
 | Condition | Result |
 |---|---|
 | Baseline (illumination 1.0) | Reaches target |
-| Low illumination (0.5) | Failure found → fixed (see [Problem 6](RESULTS.md#problem-6--low-illumination-broke-the-absolute-brightness-threshold)) |
+| Low illumination (0.5) | Failure found and diagnosed; relative-threshold fix specified but **not yet on `main`** (see [Problem 6](RESULTS.md#problem-6--low-illumination-broke-the-absolute-brightness-threshold)) |
 | Blur | No degradation |
 | Partial occlusion | Handled by existing zone logic |
+| Unfamiliar environment | Not yet run |
 
 ## Key design decision
 
@@ -53,11 +56,15 @@ e-puck/
   controllers/
     maze_nav/
       maze_nav.py        # Controller: perception, control policy, CSV logging
+      first_run.csv      # Recorded per-frame logs from baseline runs
+      second_run.csv
   worlds/
-    e-puck.wbt           # Webots world (set the robot's `controller` field to "maze_nav")
+    maze_path.wbt        # Webots world: e-puck, maze walls, red ball target
+    straigh_path.wbt     # Second world file (currently identical to maze_path.wbt)
   plugins/               # Webots-bundled boilerplate (not project code, gitignored)
 requirements.txt
 RESULTS.md               # Pipeline, experimental setup, results, problems and fixes
+LICENSE
 ```
 
 ## Prerequisites
@@ -78,21 +85,27 @@ pip install -r requirements.txt
 
 ## Running
 
-1. Open `e-puck/worlds/e-puck.wbt` in Webots.
+1. Open `e-puck/worlds/maze_path.wbt` in Webots.
 2. Select the e-puck node and confirm its `controller` field is set to `maze_nav`.
 3. Press **Run**.
 
-Four live OpenCV debug windows open alongside the simulation — the Canny edge map, the red
-target mask, the front camera feed, and the cropped right-camera strip. A timestamped CSV
-log (`run_log_YYYYMMDD_HHMMSS.csv`) is written next to the controller, recording every
-detector flag, zone density, brightness reading and wheel command per frame.
+Three live OpenCV debug windows open alongside the simulation — the Canny edge map, the
+front camera feed, and the cropped right-camera strip — plus a fourth showing the red
+target mask whenever the target is in view. A timestamped CSV log
+(`run_log_YYYYMMDD_HHMMSS.csv`) is written next to the controller, recording every detector
+flag, zone density, brightness reading and wheel command per frame.
 
 ## Reproducing the robustness experiments
 
-To reproduce the low-illumination finding, reduce the world's light intensity from 1.0 to
-0.5 and re-run. Compare the `mean_right` column against the baseline log: the wall/no-wall
-separation persists (~30 either way) while the absolute level shifts down — which is
-precisely why an absolute threshold fails and a relative one does not. Full protocol in
+To reproduce the low-illumination finding, set `luminosity 0.5` on the world's
+`TexturedBackgroundLight` node (default is `1`) and re-run. Compare the `mean_right` column
+against the baseline log: the wall/no-wall separation persists (~30 either way) while the
+absolute level shifts down — which is precisely why an absolute threshold fails and a
+relative one does not.
+
+To reproduce the blur condition, set `BLUR_ENABLED = True` at the top of
+[maze_nav.py](e-puck/controllers/maze_nav/maze_nav.py#L8) (a 9×9 Gaussian is then applied to
+every camera frame before any processing). Full protocol in
 [RESULTS.md §3](RESULTS.md#3-experimental-setup).
 
 ## License

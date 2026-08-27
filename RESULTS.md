@@ -2,6 +2,7 @@
 
 **Author:** Raghav Upadhyay
 **Repository:** https://github.com/raghav-upadhyay2002/Vision-Based-Virtual-Maze-Navigator
+**Demo video:** https://drive.google.com/file/d/1d2R76Qy9Kmbr4RCgXTRKCL5U3j1-cjew/view?usp=sharing
 **Simulator:** Webots (e-puck robot)
 **Date:** August 2026
 
@@ -60,7 +61,7 @@ close to the camera fills the frame as a flat, low-texture surface and produces 
 gradients; open space with visible floor, sky and background scenery produces many.
 
 The empirical cutoff is `density_epsilon = 0.005`, and each flag requires the condition to
-hold for **3 consecutive frames** before it is reported (see **Problem 4**).
+hold for **3 consecutive frames** before it is reported (see **Problem 3**).
 
 | Flag | Condition |
 |---|---|
@@ -79,14 +80,14 @@ Right camera frame → crop bottom 40% → grayscale → mean brightness → wal
 
 Only the bottom 40% of the right camera frame is used, so the measurement reflects the wall
 immediately beside the robot rather than walls further down the corridor (see
-**Problem 6**).
+**Problem 5**).
 
 The wall/no-wall decision is made from the mean brightness of that strip: a wall close to
 the camera occludes the brighter floor and background, lowering the mean.
 
 > **Note — threshold formulation.** The version currently on `main` uses a fixed absolute
 > cutoff (`mean_right < 195.0`). This is the formulation that fails under low illumination
-> (**Problem 5**); it has been replaced locally with a relative-change criterion
+> (**Problem 6**); it has been replaced locally with a relative-change criterion
 > (a brightness drop of more than ~30). *This section should be updated with the exact
 > reference/baseline used once the revised code is pushed.*
 
@@ -117,7 +118,7 @@ A single-priority reactive policy — obstacle avoidance always dominates target
 | 7 | otherwise (target centered, or no target) | Drive straight (L=R=3.0) |
 
 Priority 1 vs 2 — the right-camera arbitration of turn direction — is what breaks the
-robot out of repeating loops (**Problem 5**).
+robot out of repeating loops (**Problem 4**).
 
 ### 2.6 Logging
 
@@ -141,8 +142,13 @@ target mask (when visible), the front camera feed, and the cropped right-camera 
 
 ### 3.1 Environment
 
-- Webots with the bundled e-puck robot, world file `e-puck/worlds/e-puck.wbt`
+- Webots R2025a with the bundled e-puck robot, world file `e-puck/worlds/maze_path.wbt`
+  (a 3 × 2 m `RectangleArena` containing 14 `Wall` nodes and a red `Ball` as the target)
 - Controller: `e-puck/controllers/maze_nav/maze_nav.py`
+- Cameras: front (the e-puck's built-in `camera`) plus `camera_left` / `camera_right`
+  mounted in the turret slot, all 256 × 192 with a 0.84 rad field of view
+- Lighting: `TexturedBackgroundLight` with `castShadows FALSE`; baseline `luminosity` is
+  the default `1`
 - Python dependencies: `opencv-python`, `numpy`, installed **in the interpreter Webots uses
   to launch controllers** (the `controller` module is not pip-installable and only exists
   inside a Webots-launched process)
@@ -153,14 +159,16 @@ target mask (when visible), the front camera feed, and the cropped right-camera 
 
 Baseline condition is the default world at **illumination = 1.0**. After the six fixes
 documented in Section 4, the robot **navigates the maze and reaches the red target
-successfully** under baseline conditions.
+successfully** under baseline conditions. A recording of a successful baseline run is
+available here:
+[demo video](https://drive.google.com/file/d/1d2R76Qy9Kmbr4RCgXTRKCL5U3j1-cjew/view?usp=sharing).
 
 ### 3.3 Perturbation conditions
 
 | Condition | How it was induced | Status |
 |---|---|---|
-| Low illumination | World light intensity reduced from 1.0 → 0.5 | Tested — failure found and fixed |
-| Blur | Additional blur on the camera input | Tested — no degradation |
+| Low illumination | `TexturedBackgroundLight.luminosity` reduced from 1.0 → 0.5 | Tested — failure found; fix specified (not yet on `main`) |
+| Blur | `BLUR_ENABLED = True` in `maze_nav.py`: a 9 × 9 Gaussian applied to every camera frame before any processing | Tested — no degradation |
 | Partial occlusion | Wall partially blocking the front camera's field of view | Tested — handled by existing zone logic |
 | Unfamiliar environment | Different maze layout / target placement, same controller | *Pending* |
 
@@ -321,9 +329,9 @@ invariant to global illumination shifts.
 
 | Condition | Outcome | Explanation |
 |---|---|---|
-| **Baseline** (illumination 1.0) |  Reaches target | Works after the six fixes above |
-| **Low illumination** (0.5) |  Failed → fixed | Absolute brightness threshold invalidated; oscillation in place. Fixed by relative-change threshold (Problem 6) |
-| **Blur** |  No degradation | No fix required — see below |
+| **Baseline** (illumination 1.0) | Reaches target | Works after the six fixes above ([demo video](https://drive.google.com/file/d/1d2R76Qy9Kmbr4RCgXTRKCL5U3j1-cjew/view?usp=sharing)) |
+| **Low illumination** (0.5) | Failed; fix specified, not yet on `main` | Absolute brightness threshold invalidated; oscillation in place. Addressed by a relative-change threshold (Problem 6) |
+| **Blur** | No degradation | No fix required — see below |
 | **Partial occlusion** | Handled | No new fix required — see below |
 
 ### Why blur did not degrade performance
@@ -415,10 +423,14 @@ near with far (Problem 5), while acting on too short a time window produced phan
 
 1. Install Webots and ensure `numpy` + `opencv-python` are installed in the Python
    interpreter Webots uses for controllers (not just a project virtualenv).
-2. Open `e-puck/worlds/e-puck.wbt`.
+2. Open `e-puck/worlds/maze_path.wbt`.
 3. Confirm the e-puck node's `controller` field is set to `maze_nav`.
-4. Press **Run**. Four OpenCV debug windows appear alongside the simulation; a CSV log is
-   written next to the controller.
-5. To reproduce the low-illumination experiment, reduce the world's light intensity from
-   1.0 to 0.5 and re-run. Compare the `mean_right` column of the resulting log against the
-   baseline run — the wall/no-wall separation persists while the absolute level shifts down.
+4. Press **Run**. Three OpenCV debug windows appear alongside the simulation (a fourth, the
+   target mask, appears whenever the target is in view); a CSV log is written next to the
+   controller.
+5. To reproduce the low-illumination experiment, set `luminosity 0.5` on the world's
+   `TexturedBackgroundLight` node and re-run. Compare the `mean_right` column of the
+   resulting log against the baseline run — the wall/no-wall separation persists while the
+   absolute level shifts down.
+6. To reproduce the blur experiment, set `BLUR_ENABLED = True` at the top of `maze_nav.py`
+   and re-run; the zone densities in the log stay comfortably above `density_epsilon`.

@@ -108,8 +108,11 @@ def get_wall_status_vision(img_bgr):
     center_zone = edges[:, int(width * 0.33):int(width * 0.66)]
     right_zone = edges[:, int(width * 0.66):]
 
-    # Fraction of edge pixels in each zone: a wall/obstacle produces a lot of
-    # edges, while open space (floor, distant background) produces few.
+    # Fraction of edge pixels in each zone. Note the signal is inverted from what
+    # you might expect: a wall close enough to matter fills the zone as a flat,
+    # low-texture surface and produces almost NO edges, while open space (floor,
+    # sky, distant scenery) always retains contrast and produces many. See
+    # RESULTS.md, Problem 1 -- background scenery makes "many edges = wall" unusable.
     left_density = cv2.countNonZero(left_zone) / left_zone.size
     center_density = cv2.countNonZero(center_zone) / center_zone.size
     right_density = cv2.countNonZero(right_zone) / right_zone.size
@@ -168,7 +171,12 @@ def detect_walls_status_right(img_bgr_right, split_ratio):
     """Detect a wall on the right from how dark the bottom strip of that camera is.
 
     A nearby wall fills the frame and reduces the average brightness compared
-    to open floor, so a simple mean-brightness threshold is enough here.
+    to open floor, so a mean-brightness threshold suffices at baseline illumination.
+
+    Known limitation: this is the one detector keyed on ABSOLUTE intensity, and it
+    is the one that fails when the world is dimmed -- both the wall and no-wall
+    means drop below the fixed cutoff, so everything reads as "wall". See RESULTS.md,
+    Problem 6; the fix is to key on the brightness CHANGE rather than its level.
     """
     img_bottom_right = bottom_img_right(img_bgr_right, split_ratio)
     gray_right = cv2.cvtColor(img_bottom_right, cv2.COLOR_BGR2GRAY)
