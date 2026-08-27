@@ -5,6 +5,16 @@ import os
 import datetime 
 import csv
 
+BLUR_ENABLED= False
+
+BLUR_SIZE=9
+
+def blur_cam(img_bgr):
+    if not BLUR_ENABLED:
+        return img_bgr
+
+    return cv2.GaussianBlur(img_bgr, (BLUR_SIZE, BLUR_SIZE),0)
+
 
 def detect_target(img_bgr):
     """Look for the red target in a BGR camera frame.
@@ -226,6 +236,20 @@ log_writer.writerow([
     'left_velocity', 'right_velocity'
 ])
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 while robot.step(timestep) != -1:
     # Raw camera image comes back as a flat byte buffer in BGRA order.
     image_front = camera_front.getImage()
@@ -246,9 +270,11 @@ while robot.step(timestep) != -1:
     img_right = np.frombuffer(image_right, np.uint8).reshape((height_right, width_right, 4))
 
     # Drop the alpha channel so it's a standard 3-channel BGR image.
-    img_bgr_front = cv2.cvtColor(img_front, cv2.COLOR_BGRA2BGR)
-    img_bgr_left = cv2.cvtColor(img_left, cv2.COLOR_BGRA2BGR)
-    img_bgr_right = cv2.cvtColor(img_right, cv2.COLOR_BGRA2BGR)
+    img_bgr_front = blur_cam(cv2.cvtColor(img_front, cv2.COLOR_BGRA2BGR))
+    img_bgr_left = blur_cam(cv2.cvtColor(img_left, cv2.COLOR_BGRA2BGR))
+    img_bgr_right = blur_cam(cv2.cvtColor(img_right, cv2.COLOR_BGRA2BGR))
+
+    
 
     # Front camera drives wall-ahead/wall-left detection; right camera drives
     # wall-right detection. camera_left is enabled but not currently used for
