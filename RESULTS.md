@@ -321,11 +321,10 @@ invariant to global illumination shifts.
 
 | Condition | Outcome | Explanation |
 |---|---|---|
-| **Baseline** (illumination 1.0) | ✅ Reaches target | Works after the six fixes above |
-| **Low illumination** (0.5) | ⚠️ Failed → fixed | Absolute brightness threshold invalidated; oscillation in place. Fixed by relative-change threshold (Problem 6) |
-| **Blur** | ✅ No degradation | No fix required — see below |
-| **Partial occlusion** | ✅ Handled | No new fix required — see below |
-| **Unfamiliar environment** | *Pending* | Not yet run |
+| **Baseline** (illumination 1.0) |  Reaches target | Works after the six fixes above |
+| **Low illumination** (0.5) |  Failed → fixed | Absolute brightness threshold invalidated; oscillation in place. Fixed by relative-change threshold (Problem 6) |
+| **Blur** |  No degradation | No fix required — see below |
+| **Partial occlusion** | Handled | No new fix required — see below |
 
 ### Why blur did not degrade performance
 
