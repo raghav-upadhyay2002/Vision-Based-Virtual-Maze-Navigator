@@ -22,18 +22,17 @@ avoidance over target seeking.
 
 ## Status
 
-✅ **Working end to end.** The robot navigates the maze and reaches the target under baseline
+**Working end to end.** The robot navigates the maze and reaches the target under baseline
 conditions.
 
 Robustness testing against changing visual conditions is in progress:
 
 | Condition | Result |
 |---|---|
-| Baseline (illumination 1.0) | ✅ Reaches target |
-| Low illumination (0.5) | ⚠️ Failure found → fixed (see [Problem 6](RESULTS.md#problem-6--low-illumination-broke-the-absolute-brightness-threshold)) |
-| Blur | ✅ No degradation |
-| Partial occlusion | ✅ Handled by existing zone logic |
-| Unfamiliar environment | 🔄 Pending |
+| Baseline (illumination 1.0) | Reaches target |
+| Low illumination (0.5) | Failure found → fixed (see [Problem 6](RESULTS.md#problem-6--low-illumination-broke-the-absolute-brightness-threshold)) |
+| Blur | No degradation |
+| Partial occlusion | Handled by existing zone logic |
 
 ## Key design decision
 
